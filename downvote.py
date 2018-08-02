@@ -78,7 +78,8 @@ def check_items(stream_text):
     print('Checked %s items' % len(items))
 
 
-login(username='bonzizzle', password='boguspasswd')
+exit(1) # REMOVE THIS LINE WHEN USERNAME AND PASSWORD ARE SET
+login(username='****', password='****')
 if session.cookies.get("user") is None:
     print("Quiting due to lack of auth")
     exit(1)
