@@ -1,22 +1,17 @@
-from doctest import UnexpectedException
-
 import requests
 from requests_html import HTMLSession
 from datetime import datetime
 
-#https://news.ycombinator.com/vote?id=17405136&how=up&auth=24a87965d2eaee28410aa24365f8afba22c20d16&goto=item%3Fid%3D17404728
-
-#https://news.ycombinator.com/vote?id=17405206&how=up&auth=ef2cbdf46bf4948cf7fb17e602bb44f09eecd93d&goto=item%3Fid%3D17404728#17405206
-#https://news.ycombinator.com/vote?id=17405279&how=up&auth=adcefd73eff9e161be9753bbcf70d01bb335b0a6&goto=item%3Fid%3D17404728#17405279
 import firebase
-
-UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Iridium/2017.11 Safari/537.36 Chrome/62.0.3202.94"
 
 LOGIN_URL = "https://news.ycombinator.com/login"
 ARTICLE_URL = "https://news.ycombinator.com/item?id=%s"
 STREAM_API = "https://hacker-news.firebaseio.com/v0/updates.json"
 COMMENT_API = "https://hacker-news.firebaseio.com/v0/item/%s.json"
 VOTE_URL = "https://news.ycombinator.com/vote?id=%s&how=%s&auth=%s&goto=item%3Fid%3D%s"
+
+VOTE_DIRECTION = "up"
+UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Iridium/2017.11 Safari/537.36 Chrome/62.0.3202.94"
 
 header = {'User-Agent': UA}
 auth_cookie = None
@@ -36,12 +31,12 @@ def vote(comment_id, direction):
     if not vote_url:
         raise RuntimeError("No vote url found")
 
-    print("Vote URL: %s" % vote_url)
-    # vote_resp = session.get(vote_url)
-    # if vote_resp.is_redirect():
-    #     print("Vote success: %s" % vote_url)
-    # else:
-    #     print("Vote flailed: HTTP code %s" % vote_resp.status_code)
+    # print("Vote URL: %s" % vote_url)
+    vote_resp = session.get(vote_url)
+    if vote_resp.is_redirect():
+        print("Vote success: %s" % vote_url)
+    else:
+        print("Vote flailed: HTTP code %s" % vote_resp.status_code)
 
 
 def check_text(text):
@@ -50,11 +45,10 @@ def check_text(text):
         return False
 
     tmp_text = ''.join(e for e in text if e.isalnum()).lower()
-
     if tmp_text == 'this':
         return True
-
-    return False
+    else:
+        return False
 
 
 def login(username, password):
@@ -76,7 +70,7 @@ def check_items(stream_text):
             item_info = requests.get(COMMENT_API % hn_id).json()
             if item_info['type'] == "comment" and check_text(item_info["text"]):
                 print("Found comment: %s, text: %s" % (hn_id, item_info['text']))
-                vote(hn_id, "up")
+                vote(hn_id, VOTE_DIRECTION)
         except Exception as e:
             print("Failed to parse item %s" % hn_id)
             print(e)
